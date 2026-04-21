@@ -1,14 +1,22 @@
 package com.nitinconstructions.dto;
 
-// ── Upload Response ───────────────────────────────────────────────────────────
-public class UploadResult {
-    private String url;
-    private String publicId;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    public UploadResult(String url, String publicId) {
-        this.url      = url;
-        this.publicId = publicId;
-    }
-    public String getUrl()      { return url; }
-    public String getPublicId() { return publicId; }
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UploadResult {
+
+    // ImageKit fileId — used for deletion (replaces Cloudinary's publicId)
+    private String fileId;
+
+    // Full CDN URL of the uploaded image
+    private String url;
+
+    // Optional: ImageKit file path (e.g. /nitin-constructions/projects/1/image-1.jpg)
+    private String filePath;
 }

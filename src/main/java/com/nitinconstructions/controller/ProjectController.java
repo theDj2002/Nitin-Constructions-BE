@@ -20,8 +20,6 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
-    // GET /api/projects            — public (visible only)
-    // GET /api/projects?admin=true — admin (all)
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProjectResponse>>> getAll(
             @RequestParam(required = false, defaultValue = "false") boolean admin) {

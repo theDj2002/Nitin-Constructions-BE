@@ -16,7 +16,6 @@ public class ProjectResponse {
     private Integer year;
     private Boolean isVisible;
     private Integer order;
-    private List<ImageDto> images;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -32,7 +31,6 @@ public class ProjectResponse {
         r.order = p.getOrder();
         r.createdAt = p.getCreatedAt();
         r.updatedAt = p.getUpdatedAt();
-        r.images = p.getImages().stream().map(ImageDto::from).toList();
         return r;
     }
 }
