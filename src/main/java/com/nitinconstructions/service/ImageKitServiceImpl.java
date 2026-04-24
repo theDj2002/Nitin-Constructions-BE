@@ -87,24 +87,24 @@ public class ImageKitServiceImpl implements ImageKitService {
     @Override
     public List<UploadResult> uploadImages(List<MultipartFile> files, Long projectId) {
         List<UploadResult> results = new ArrayList<>();
-        Project p = findOrThrow(projectId);
-        UploadResult result = new UploadResult();
-        ProjectImage img = new ProjectImage();
+//        Project p = findOrThrow(projectId);
+//        UploadResult result = new UploadResult();
+//        ProjectImage img = new ProjectImage();
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
             if (file.isEmpty()) {
                 log.warn("Skipping empty file at index {} for project={}", i, projectId);
                 continue;
             }
-            result = uploadImage(file, projectId);
-            img = ProjectImage.builder()
-                    .url(result.getUrl())
-                    .publicId(result.getFileId())
-                    .caption("")
-                    .project(p)
-                    .build();
-            p.getImages().add(img);
-            projectRepo.save(p);
+//            result = uploadImage(file, projectId);
+//            img = ProjectImage.builder()
+//                    .url(result.getUrl())
+//                    .publicId(result.getFileId())
+//                    .caption("")
+//                    .project(p)
+//                    .build();
+//            p.getImages().add(img);
+//            projectRepo.save(p);
             results.add(uploadImage(file, projectId));
         }
         log.info("Uploaded {}/{} images for project={}", results.size(), files.size(), projectId);
