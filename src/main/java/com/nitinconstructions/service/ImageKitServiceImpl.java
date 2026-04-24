@@ -1,12 +1,16 @@
 package com.nitinconstructions.service;
 
 import com.nitinconstructions.dto.UploadResult;
+import com.nitinconstructions.entity.Project;
+import com.nitinconstructions.entity.ProjectImage;
 import com.nitinconstructions.exception.ImageUploadException;
+import com.nitinconstructions.repository.ProjectRepository;
 import io.imagekit.sdk.ImageKit;
 import io.imagekit.sdk.exceptions.*;
 import io.imagekit.sdk.models.DeleteFolderRequest;
 import io.imagekit.sdk.models.FileCreateRequest;
 import io.imagekit.sdk.models.results.Result;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,13 +29,11 @@ import java.util.UUID;
 public class ImageKitServiceImpl implements ImageKitService {
 
     private final ImageKit imageKit;
+    private final ProjectRepository projectRepo;
 
     @Value("${imagekit.base-folder}")
     private String baseFolder;
 
-    // ─────────────────────────────────────────────────────────────
-    // Upload single image
-    // ─────────────────────────────────────────────────────────────
     @Override
     public UploadResult uploadImage(MultipartFile file, Long projectId) {
         validateFile(file);
@@ -42,10 +44,20 @@ public class ImageKitServiceImpl implements ImageKitService {
 
             FileCreateRequest request = new FileCreateRequest(base64, fileName);
             request.setFolder(folder);
-            request.setUseUniqueFileName(false); // we handle uniqueness ourselves
+            request.setUseUniqueFileName(false);
 
             // SDK v2+: throws exception on failure — no isSuccessful() check needed
             Result result = imageKit.upload(request);
+            Project p = findOrThrow(projectId);
+            ProjectImage img = new ProjectImage();
+            img = ProjectImage.builder()
+                    .url(result.getUrl())
+                    .publicId(result.getFileId())
+                    .caption("")
+                    .project(p)
+                    .build();
+            p.getImages().add(img);
+            projectRepo.save(p);
 
             log.info(String.valueOf(result));
             log.info("ImageKit upload success | project={} | fileId={} | url={}",
@@ -67,18 +79,32 @@ public class ImageKitServiceImpl implements ImageKitService {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Upload multiple images
-    // ─────────────────────────────────────────────────────────────
+    private Project findOrThrow(Long id) {
+        return projectRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found with id: " + id));
+    }
+
     @Override
     public List<UploadResult> uploadImages(List<MultipartFile> files, Long projectId) {
         List<UploadResult> results = new ArrayList<>();
+        Project p = findOrThrow(projectId);
+        UploadResult result = new UploadResult();
+        ProjectImage img = new ProjectImage();
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
             if (file.isEmpty()) {
                 log.warn("Skipping empty file at index {} for project={}", i, projectId);
                 continue;
             }
+            result = uploadImage(file, projectId);
+            img = ProjectImage.builder()
+                    .url(result.getUrl())
+                    .publicId(result.getFileId())
+                    .caption("")
+                    .project(p)
+                    .build();
+            p.getImages().add(img);
+            projectRepo.save(p);
             results.add(uploadImage(file, projectId));
         }
         log.info("Uploaded {}/{} images for project={}", results.size(), files.size(), projectId);

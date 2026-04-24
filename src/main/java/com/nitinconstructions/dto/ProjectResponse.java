@@ -17,6 +17,7 @@ public class ProjectResponse {
     private Boolean isVisible;
     private Integer order;
     private LocalDateTime createdAt;
+    private List<ImageDto> images;
     private LocalDateTime updatedAt;
 
     public static ProjectResponse from(Project p) {
@@ -31,6 +32,14 @@ public class ProjectResponse {
         r.order = p.getOrder();
         r.createdAt = p.getCreatedAt();
         r.updatedAt = p.getUpdatedAt();
+        r.images = p.getImages().stream().map(t -> {
+            ImageDto dto = new ImageDto();
+            dto.setPublicId(String.valueOf(t.getPublicId()));
+            dto.setUrl(t.getUrl());
+            dto.setCaption(t.getCaption());
+            dto.setId(t.getId());
+            return dto;
+        }).toList();
         return r;
     }
 }

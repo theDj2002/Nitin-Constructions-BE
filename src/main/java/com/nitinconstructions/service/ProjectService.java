@@ -1,6 +1,9 @@
 package com.nitinconstructions.service;
 
-import com.nitinconstructions.dto.*;
+import com.nitinconstructions.dto.ImageRequest;
+import com.nitinconstructions.dto.ProjectRequest;
+import com.nitinconstructions.dto.ProjectResponse;
+import com.nitinconstructions.dto.UploadResult;
 import com.nitinconstructions.entity.Project;
 import com.nitinconstructions.entity.ProjectImage;
 import com.nitinconstructions.repository.ProjectImageRepository;
@@ -16,16 +19,16 @@ import java.util.List;
 @Transactional
 public class ProjectService {
 
-    private final ProjectRepository      projectRepo;
+    private final ProjectRepository projectRepo;
     private final ProjectImageRepository imageRepo;
-    private final ImageKitService        imageKitService; // ← replaced CloudinaryService
+    private final ImageKitService imageKitService; // ← replaced CloudinaryService
 
     public ProjectService(ProjectRepository projectRepo,
                           ProjectImageRepository imageRepo,
                           ImageKitService imageKitService) {
-        this.projectRepo      = projectRepo;
-        this.imageRepo        = imageRepo;
-        this.imageKitService  = imageKitService;
+        this.projectRepo = projectRepo;
+        this.imageRepo = imageRepo;
+        this.imageKitService = imageKitService;
     }
 
     // ── GET ALL ──────────────────────────────────────────────────────────────
@@ -58,13 +61,13 @@ public class ProjectService {
     // ── UPDATE ───────────────────────────────────────────────────────────────
     public ProjectResponse update(Long id, ProjectRequest req) {
         Project p = findOrThrow(id);
-        if (req.name()        != null) p.setName(req.name());
-        if (req.type()        != null) p.setType(req.type());
-        if (req.location()    != null) p.setLocation(req.location());
+        if (req.name() != null) p.setName(req.name());
+        if (req.type() != null) p.setType(req.type());
+        if (req.location() != null) p.setLocation(req.location());
         if (req.description() != null) p.setDescription(req.description());
-        if (req.year()        != null) p.setYear(req.year());
-        if (req.isVisible()   != null) p.setIsVisible(req.isVisible());
-        if (req.order()       != null) p.setOrder(req.order());
+        if (req.year() != null) p.setYear(req.year());
+        if (req.isVisible() != null) p.setIsVisible(req.isVisible());
+        if (req.order() != null) p.setOrder(req.order());
         return ProjectResponse.from(projectRepo.save(p));
     }
 
@@ -91,7 +94,8 @@ public class ProjectService {
         // Also delete the folder on ImageKit (cleans up completely)
         try {
             imageKitService.deleteProjectFolder(id);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         projectRepo.delete(p);
     }

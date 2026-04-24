@@ -33,7 +33,7 @@ public class ProjectController {
     }
 
     // POST /api/projects  — Admin
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse<ProjectResponse>> create(@Valid @RequestBody ProjectRequest req) {
         ProjectResponse created = projectService.create(req);
         return ResponseEntity.status(201).body(ApiResponse.ok("Project created.", created));

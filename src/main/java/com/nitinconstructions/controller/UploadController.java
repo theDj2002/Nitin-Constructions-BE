@@ -3,6 +3,8 @@ package com.nitinconstructions.controller;
 import com.nitinconstructions.dto.ApiResponse;
 import com.nitinconstructions.dto.UploadResult;
 import com.nitinconstructions.service.ImageKitService;
+import com.nitinconstructions.service.ProjectService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +19,8 @@ import java.util.List;
 public class UploadController {
 
     private final ImageKitService imageKitService;
+    @Autowired
+    private  ProjectService projectService;
 
     public UploadController(ImageKitService imageKitService) {
         this.imageKitService = imageKitService;
