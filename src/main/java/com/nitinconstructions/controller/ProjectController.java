@@ -83,4 +83,23 @@ public class ProjectController {
             @PathVariable String publicId) throws IOException {
         return ResponseEntity.ok(ApiResponse.ok("Image removed.", projectService.deleteImage(id, publicId)));
     }
+    @PostMapping("/{id}/images/upload-multiple")
+    public ResponseEntity<ApiResponse<ProjectResponse>> uploadImages(
+            @PathVariable Long id,
+            @RequestParam("images") List<MultipartFile> files) throws IOException {
+        if (files == null || files.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.ok("No files provided.", null));
+        }
+        if (files.size() > 10) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.ok("Maximum 10 images per upload.", null));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Uploaded " + files.size() + " image(s).",
+                projectService.uploadAndAddImages(id, files)
+        ));
+    }
+
+
 }

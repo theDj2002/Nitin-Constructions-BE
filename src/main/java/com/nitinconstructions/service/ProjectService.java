@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -119,14 +120,14 @@ public class ProjectService {
 
         // Upload to ImageKit under /nitin-constructions/projects/{projectId}/
         UploadResult result = imageKitService.uploadImage(file, projectId);
-
-        ProjectImage img = ProjectImage.builder()
-                .url(result.getUrl())
-                .publicId(result.getFileId())  // ← ImageKit fileId stored as publicId
-                .caption("")
-                .project(p)
-                .build();
-        p.getImages().add(img);
+//
+//        ProjectImage img = ProjectImage.builder()
+//                .url(result.getUrl())
+//                .publicId(result.getFileId())  // ← ImageKit fileId stored as publicId
+//                .caption("")
+//                .project(p)
+//                .build();
+//        p.getImages().add(img);
         return ProjectResponse.from(projectRepo.save(p));
     }
 
@@ -150,5 +151,44 @@ public class ProjectService {
     private Project findOrThrow(Long id) {
         return projectRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found with id: " + id));
+    }
+
+    // ── UPLOAD & ADD MULTIPLE IMAGES ──────────────────────────────────────────
+    /**
+     * Uploads every file in the list to ImageKit and attaches them all to the
+     * project in one transaction.  Partial failures are collected and reported
+     * rather than rolling back successfully uploaded images.
+     *
+     * @throws RuntimeException if ALL uploads fail (so the caller gets a 500).
+     */
+    public ProjectResponse uploadAndAddImages(Long projectId, List<MultipartFile> files) {
+        Project p = findOrThrow(projectId);
+
+        List<String> failures = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            try {
+                UploadResult result = imageKitService.uploadImage(file, projectId);
+                ProjectImage img = ProjectImage.builder()
+                        .url(result.getUrl())
+                        .publicId(result.getFileId())
+                        .caption("")
+                        .project(p)
+                        .build();
+                p.getImages().add(img);
+            } catch (Exception e) {
+                failures.add(file.getOriginalFilename() + ": " + e.getMessage());
+            }
+        }
+
+        // Persist whatever succeeded
+        ProjectResponse response = ProjectResponse.from(projectRepo.save(p));
+
+        // If every single file failed, surface the error to the controller
+        if (failures.size() == files.size()) {
+            throw new RuntimeException("All uploads failed: " + String.join("; ", failures));
+        }
+
+        return response;
     }
 }
