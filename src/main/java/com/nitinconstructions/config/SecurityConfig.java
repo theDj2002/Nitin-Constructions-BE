@@ -35,32 +35,42 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((req, res, e) -> {
-                    res.setContentType("application/json");
-                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    res.getWriter().write("{\"success\":false,\"message\":\"Unauthorized. Token missing or invalid.\"}");
-                })
-                .accessDeniedHandler((req, res, e) -> {
-                    res.setContentType("application/json");
-                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    res.getWriter().write("{\"success\":false,\"message\":\"Access denied.\"}");
-                })
-            )
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/auth/verify").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/projects").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/projects/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/api/health").permitAll()
-                // Everything else requires ADMIN role
-                .anyRequest().hasRole("ADMIN")
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setContentType("application/json");
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            res.getWriter().write("{\"success\":false,\"message\":\"Unauthorized. Token missing or invalid.\"}");
+                        })
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setContentType("application/json");
+                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            res.getWriter().write("{\"success\":false,\"message\":\"Access denied.\"}");
+                        })
+                )
+                .authorizeHttpRequests(auth -> auth
+                        // ── Auth ────────────────────────────────────────────────
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/auth/verify").permitAll()
+
+                        // ── Projects (public reads) ──────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/projects").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/{id}").permitAll()
+
+                        // ── Reviews (public submit + public reads) ───────────────
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/api/reviews").permitAll()          // ?projectId=
+                        .requestMatchers(HttpMethod.GET,  "/api/reviews/general").permitAll()
+
+                        // ── Health ───────────────────────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+
+                        // ── Everything else requires ADMIN ───────────────────────
+                        .anyRequest().hasRole("ADMIN")
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
