@@ -119,7 +119,7 @@ public class ProjectService {
         Project p = findOrThrow(projectId);
 
         // Upload to ImageKit under /nitin-constructions/projects/{projectId}/
-        UploadResult result = imageKitService.uploadImage(file, projectId);
+       imageKitService.uploadImage(file, projectId);
 //
 //        ProjectImage img = ProjectImage.builder()
 //                .url(result.getUrl())
@@ -168,14 +168,14 @@ public class ProjectService {
 
         for (MultipartFile file : files) {
             try {
-                UploadResult result = imageKitService.uploadImage(file, projectId);
-                ProjectImage img = ProjectImage.builder()
-                        .url(result.getUrl())
-                        .publicId(result.getFileId())
-                        .caption("")
-                        .project(p)
-                        .build();
-                p.getImages().add(img);
+               imageKitService.uploadImage(file, projectId);
+//                ProjectImage img = ProjectImage.builder()
+//                        .url(result.getUrl())
+//                        .publicId(result.getFileId())
+//                        .caption("")
+//                        .project(p)
+//                        .build();
+//                p.getImages().add(img);
             } catch (Exception e) {
                 failures.add(file.getOriginalFilename() + ": " + e.getMessage());
             }
